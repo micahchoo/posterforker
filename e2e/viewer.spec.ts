@@ -29,6 +29,9 @@ test('the Tour switcher opens the second Tour, and its link names it', async ({ 
   await page.getByRole('button', { name: 'The harbour' }).click();
   await expect(page.getByRole('heading', { level: 2, name: 'The harbour' })).toBeVisible();
   await expect(page).toHaveURL(/#tour=harbour$/);
+  // Opening a Tour is not a move by the Reader: the link must not gain a free view later.
+  await page.waitForTimeout(2500);
+  await expect(page).toHaveURL(/#tour=harbour$/);
   await page.keyboard.press('n');
   await expect(page.getByRole('heading', { level: 2, name: 'The pier' })).toBeVisible();
 });
@@ -52,4 +55,19 @@ test('on a phone the panel is a bottom sheet', async ({ page }) => {
   const box = (await panel.boundingBox())!;
   expect(Math.round(box.y + box.height)).toBe(740);
   expect(box.width).toBe(375);
+});
+
+test('a Reader who pans onto a Scene sees its words, and the link follows', async ({ page }) => {
+  // A free view around Scene 2 ("The mouth", 1200,900 500x400), opened from a link: no Scene yet.
+  await page.goto('./#tour=river&xywh=1100,800,700,600');
+  await expect(page.getByRole('heading', { level: 2, name: 'The river' })).toBeVisible();
+
+  const box = (await page.getByRole('img', { name: 'The river' }).boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.6 + 30, box.y + box.height * 0.5 + 20, { steps: 5 });
+  await page.mouse.up();
+
+  await expect(page.getByRole('heading', { level: 2, name: 'The mouth' })).toBeVisible();
+  await expect(page).toHaveURL(/#tour=river&scene=02$/);
 });

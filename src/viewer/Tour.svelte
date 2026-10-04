@@ -23,7 +23,9 @@
     const tour = viewer.tour;
     const width = tour.width;
     let cancelled = false;
-    let moving = false;
+    // Only a move the Reader made is followed. OpenSeadragon also animates on its own (opening
+    // an Image, a resize), and a Scene the state chose is already chosen.
+    let readerMoved = false;
 
     const osd = OpenSeadragon({
       element: host,
@@ -40,17 +42,17 @@
     const screen = () => ({ width: host.clientWidth, height: host.clientHeight });
     const camera = {
       show(region: PixelRect, immediately = false) {
-        moving = true;
+        readerMoved = false;
         const target = toNorm(behindPanel(region, screen(), viewer.insets), width);
         osd.viewport.fitBounds(new OpenSeadragon.Rect(target.x, target.y, target.w, target.h), immediately);
-        if (immediately) moving = false;
       },
       zoomBy(factor: number) {
+        readerMoved = true;
         osd.viewport.zoomBy(factor);
         osd.viewport.applyConstraints();
       },
       home() {
-        moving = true;
+        readerMoved = false;
         osd.viewport.goHome(viewer.reducedMotion);
       },
       view(): PixelRect {
@@ -70,10 +72,13 @@
     };
     outlineOf = showOutline;
 
+    for (const gesture of ['canvas-drag', 'canvas-scroll', 'canvas-pinch', 'canvas-double-click'] as const) {
+      osd.addHandler(gesture, () => (readerMoved = true));
+    }
     osd.addHandler('animation-finish', () => {
-      // A move the state asked for already chose its Scene; only the Reader's own moves are followed.
-      if (moving) moving = false;
-      else viewer.followView();
+      if (!readerMoved) return;
+      readerMoved = false;
+      viewer.followView();
     });
 
     Promise.all([tileSource(tour.tiles), fetch(new URL(tour.manifest, document.baseURI)).then((r) => r.json())]).then(
