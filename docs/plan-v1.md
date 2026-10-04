@@ -8,11 +8,9 @@ v1 is finished when this passes:
 
 ## Status, 2026-10-04
 
-Phases 1–6 are built and pass locally: 40 Vitest tests, 7 Playwright tests, `tsc` and
-`svelte-check` clean. Phase 0 (1) passed on this machine, not yet on a GitHub runner.
-Phase 0 (2), the prefilled link, is untested against GitHub. Nothing is pushed:
-`micahchoo/posterforker` and the template repository do not exist on GitHub yet, so
-the exit test cannot run. Details in `HANDOFF.md`.
+Released as v1.0.0. Phases 1–6 are done; Phase 0 (1) passed locally and with the
+2.6 MB sample on GitHub, not yet with a large Release asset. Phase 0 (2) and the exit
+test are open. Details in `HANDOFF.md`.
 
 Read `CONTEXT.md` for the terms and `docs/adr/` for why the shape is what it is.
 Build a phase only after the phase before it passes. Each phase touches five source
