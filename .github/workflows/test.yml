@@ -1,0 +1,35 @@
+name: Test
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm install --global pnpm@11 && pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm e2e
+
+  # The template is what every Maker starts from. This engine must still build it.
+  template:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: micahchoo/posterforker-template
+          path: template-repo
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm install --global pnpm@11 && pnpm install --frozen-lockfile
+      - run: pnpm build:ui
+      - run: node --experimental-strip-types --no-warnings src/build/main.ts --content template-repo --out "$RUNNER_TEMP/site" --base-url https://example.invalid/

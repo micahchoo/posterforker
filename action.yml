@@ -1,0 +1,51 @@
+name: PosterForker
+description: Tile a Collection's Images, build its IIIF manifests and viewer, and publish it on GitHub Pages.
+branding:
+  icon: image
+  color: blue
+
+inputs:
+  content:
+    description: Folder that holds collection.yml and tours/.
+    default: .
+  token:
+    description: Reads Release assets (big Images). The default is enough.
+    default: ${{ github.token }}
+
+outputs:
+  page_url:
+    description: Where the Collection is published.
+    value: ${{ steps.deploy.outputs.page_url }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: 24
+
+    - name: Install the engine
+      shell: bash
+      run: |
+        npm install --global pnpm@11 >/dev/null
+        pnpm install --prod --frozen-lockfile --dir "$GITHUB_ACTION_PATH"
+
+    - id: pages
+      uses: actions/configure-pages@v6
+
+    - name: Build the Collection
+      shell: bash
+      env:
+        CONTENT: ${{ inputs.content }}
+        BASE_URL: ${{ steps.pages.outputs.base_url }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        node --experimental-strip-types --no-warnings "$GITHUB_ACTION_PATH/src/build/main.ts" \
+          --content "$CONTENT" --out "$RUNNER_TEMP/site" --base-url "$BASE_URL/"
+
+    - uses: actions/upload-pages-artifact@v5
+      with:
+        path: ${{ runner.temp }}/site
+
+    - id: deploy
+      uses: actions/deploy-pages@v5

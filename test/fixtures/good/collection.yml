@@ -1,0 +1,6 @@
+title: Two maps
+tours: [river, harbour]
+credits: Public-domain test images.
+layout:
+  panel: [scene-text, scene-list, prev-next]
+  top-right: [share, fullscreen]

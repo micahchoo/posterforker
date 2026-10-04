@@ -1,0 +1,32 @@
+# A tag vX.Y.Z builds dist/ (the viewer and /edit), commits it onto the tag's commit,
+# and moves the major tag (v1) there. Every Collection picks the release up on its next build.
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm install --global pnpm@11 && pnpm install --frozen-lockfile
+      - run: pnpm typecheck && pnpm test
+      - run: pnpm build:ui
+      - name: Commit dist/ and move the major tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --force dist
+          git commit -m "dist for $TAG"
+          MAJOR="${TAG%%.*}"
+          git tag --force "$MAJOR"
+          git push --force origin "$MAJOR"
