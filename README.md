@@ -1,8 +1,14 @@
 # PosterForker
 
 Publish a guided tour of a very large image on GitHub Pages, using nothing but a
-browser. A Maker copies [the template](https://github.com/micahchoo/posterforker-template),
-adds Images and Scenes, and GitHub does the rest.
+browser.
+
+**[→ Create your Collection](https://github.com/new?template_name=posterforker-template&template_owner=micahchoo)**
+· [see an example](https://micahchoo.github.io/posterforker-template/)
+
+That link copies [the template](https://github.com/micahchoo/posterforker-template)
+into your account; its README walks you through the rest. You do not need this
+repository to make a Collection.
 
 This repository is the engine: the build that runs in GitHub Actions, the viewer a
 Reader sees, and the `/edit` pages a Maker uses. The terms are in
