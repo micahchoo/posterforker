@@ -2,6 +2,7 @@
 //   node src/build/main.ts --content <repo> --out <site> --base-url <pages url>
 // Every failure is printed as a GitHub annotation, so the Maker sees it on the file.
 import { Effect, Exit, Result } from 'effect';
+import { appendFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import type { Problem } from '../core/source.ts';
@@ -90,7 +91,16 @@ const exit = await Effect.runPromiseExit(
 );
 
 if (Exit.isSuccess(exit)) {
-  annotate('notice', { message: exit.value });
+  // The run page is where a Maker looks after a commit, so both addresses go there.
+  const site = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const edit = `${site}edit/`;
+  annotate('notice', { message: `${exit.value} Edit Scenes and the Theme at ${edit}` });
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    appendFileSync(
+      process.env.GITHUB_STEP_SUMMARY,
+      `## Published\n\n${exit.value}\n\n| | |\n|---|---|\n| Your Collection | [${site}](${site}) |\n| Edit Scenes, Theme and Layout | [${edit}](${edit}) |\n`,
+    );
+  }
 } else {
   const failure = exit.cause.reasons.find((r) => r._tag === 'Fail')?.error;
   if (failure instanceof Failed) failure.annotations.forEach((a) => annotate('error', a));

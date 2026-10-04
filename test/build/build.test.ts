@@ -12,6 +12,7 @@ const FIXTURES = resolve('test/fixtures');
 const work = mkdtempSync(join(tmpdir(), 'pf-build-'));
 
 async function build(content: string, env: Record<string, string> = {}) {
+  env = { GITHUB_STEP_SUMMARY: '', ...env };
   const out = join(work, `site-${Math.random().toString(36).slice(2)}`);
   try {
     const r = await run('node', ['--experimental-strip-types', '--no-warnings', MAIN, '--content', content, '--out', out, '--base-url', 'https://maker.github.io/col/'], {
@@ -68,6 +69,16 @@ describe('build', () => {
     expect(r.code).toBe(1);
     expect(r.stdout).toContain('::error file=theme.yml,line=2::colors: text on background is 1.45:1, needs 4.5:1');
   });
+
+  it('tells the Maker where the Collection and /edit are, on the run page', async () => {
+    const summary = join(work, 'summary.md');
+    const r = await build(good, { POSTERFORKER_RELEASE_DIR: releases, GITHUB_STEP_SUMMARY: summary });
+    expect(r.code).toBe(0);
+    expect(r.stdout).toContain('::notice::Built 2 Tours with 3 Scenes. Edit Scenes and the Theme at https://maker.github.io/col/edit/');
+    const text = readFileSync(summary, 'utf8');
+    expect(text).toContain('[https://maker.github.io/col/](https://maker.github.io/col/)');
+    expect(text).toContain('[https://maker.github.io/col/edit/](https://maker.github.io/col/edit/)');
+  }, 30_000);
 
   it('writes manifests, tiles and the Collection for good content', async () => {
     const r = await build(good, { POSTERFORKER_RELEASE_DIR: releases });

@@ -66,6 +66,7 @@ export class ViewerState {
     const pending = this.#pending;
     this.#pending = null;
     const index = pending?.scene ? scenes.findIndex((s) => s.id === pending.scene) : -1;
+    if (pending?.scene && index < 0) this.say(`This link names a Scene, “${pending.scene}”, that this Tour does not have.`, 8000);
     if (index >= 0) this.goToScene(index, true);
     else if (pending?.view) camera.show(pending.view, true);
     else this.sceneIndex = null;
@@ -137,13 +138,14 @@ export class ViewerState {
   readUrl() {
     const place = parsePlace(location.hash);
     const index = place.tour ? this.collection.tours.findIndex((t) => t.id === place.tour) : 0;
+    if (index < 0) this.say(`This link names a Tour, “${place.tour}”, that this Collection does not have.`, 8000);
     this.openTour(Math.max(index, 0), { ...(place.scene ? { scene: place.scene } : {}), ...(place.view ? { view: place.view } : {}) });
   }
 
-  say(message: string) {
+  say(message: string, ms = 2500) {
     this.message = message;
     setTimeout(() => {
       if (this.message === message) this.message = '';
-    }, 2500);
+    }, ms);
   }
 }

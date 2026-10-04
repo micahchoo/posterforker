@@ -71,3 +71,15 @@ test('a Reader who pans onto a Scene sees its words, and the link follows', asyn
   await expect(page.getByRole('heading', { level: 2, name: 'The mouth' })).toBeVisible();
   await expect(page).toHaveURL(/#tour=river&scene=02$/);
 });
+
+test('a link naming a Scene the Tour lacks says so, and does not pretend', async ({ page }) => {
+  await page.goto('./#tour=river&scene=03/edit/');
+  await expect(page.getByRole('status')).toHaveText('This link names a Scene, “03/edit/”, that this Tour does not have.');
+  await expect(page.getByRole('heading', { level: 2, name: 'The river' })).toBeVisible();
+});
+
+test('a link naming a Tour the Collection lacks says so', async ({ page }) => {
+  await page.goto('./#tour=lighthouse');
+  await expect(page.getByRole('status')).toHaveText('This link names a Tour, “lighthouse”, that this Collection does not have.');
+  await expect(page.getByRole('heading', { level: 2, name: 'The river' })).toBeVisible();
+});
