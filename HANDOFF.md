@@ -1,20 +1,12 @@
 # Handoff — 2026-10-04
 
-## v1.1 (the new editor) — built and tested locally, NOT committed
+## v1.1 — released without sign-in
 
-The owner judged /edit unfriendly; ADR-0005 and `docs/plan-v1.1.md` are the answer. Phases
-1–5 pass: 67 unit, 13 browser tests, typecheck clean, screenshots checked on desktop and
-phone. Waiting on the owner for two things:
-
-1. **Go-ahead to commit, push and release v1.1.0.** Without the relay, /edit still ships
-   improved: direct editing, Look and Layout boards, and "Save without signing in".
-2. **`node scripts/setup-relay.mjs`** — needs a Cloudflare login and one click on GitHub's
-   prefilled Create-App form. Then one more release turns on Sign in with GitHub.
-
-Untested against real services: the relay on Cloudflare, the App's install-then-resume
-flow, and the Git Data API save from a real browser (the fake in
-`test/edit/fake-github.ts` enforces the same fast-forward rule).
-
+v1.1.0 ships the new editor. The owner chose not to set up the relay (2026-10-04), so
+`POSTERFORKER_RELAY` is unset and /edit offers only **Save without signing in**. The
+sign-in code (relay/, edit/github.ts, auth.ts) is built and tested against fakes, and
+switched on later by `node scripts/setup-relay.mjs` plus one release (docs/RELAY.md).
+Never tested against real Cloudflare or a real GitHub App.
 
 ## State
 
