@@ -38,7 +38,8 @@
   {:else}
     {#if n > 0}
       <span class="state">{n} unsaved change{n === 1 ? '' : 's'}</span>
-      <button type="button" class="ghost" onclick={onfallback}>Save without signing in</button>
+      <!-- With no sign-in on offer, this IS the save, so it says so plainly. -->
+      <button type="button" class={RELAY_URL ? 'ghost' : 'primary'} onclick={onfallback}>{RELAY_URL ? 'Save without signing in' : 'Save'}</button>
     {/if}
     {#if RELAY_URL}
       <button type="button" class="primary" onclick={signIn}>Sign in with GitHub to save</button>

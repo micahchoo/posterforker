@@ -1,5 +1,6 @@
 <script lang="ts">
   // Saving without signing in: each change opens the GitHub page that makes it.
+  import { RELAY_URL } from './config.ts';
   import { fileLink } from './links.ts';
   import type { EditSession } from './session.svelte.ts';
   let { session, open = $bindable(false) }: { session: EditSession; open: boolean } = $props();
@@ -10,6 +11,7 @@
     if (open) dialog?.showModal();
     else dialog?.close();
   });
+  const heading = RELAY_URL ? 'Save without signing in' : 'Save on GitHub';
   const repo = $derived(session.collection.repository && session.collection.branch ? { repository: session.collection.repository, branch: session.collection.branch } : null);
 
   async function copy(path: string, text: string) {
@@ -18,8 +20,8 @@
   }
 </script>
 
-<dialog bind:this={dialog} aria-label="Save without signing in" onclose={() => (open = false)}>
-  <h2>Save without signing in</h2>
+<dialog bind:this={dialog} aria-label={heading} onclose={() => (open = false)}>
+  <h2>{heading}</h2>
   <p>Each change below opens the right page on GitHub. Make them in order, and commit each one there.</p>
   <ol>
     {#each session.pending as change (change.path)}
@@ -37,7 +39,7 @@
       </li>
     {/each}
   </ol>
-  <p class="better">Signing in does all of this with one click.</p>
+  {#if RELAY_URL}<p class="better">Signing in does all of this with one click.</p>{/if}
   <button type="button" class="close" onclick={() => (open = false)}>Close</button>
 </dialog>
 
