@@ -80,6 +80,36 @@ describe('build', () => {
     expect(text).toContain('[https://maker.github.io/col/edit/](https://maker.github.io/col/edit/)');
   }, 30_000);
 
+  it('plays Scenes in the order tour.yml lists, and names a Scene it lists but lacks', async () => {
+    const dir = join(work, 'ordered');
+    cpSync(good, dir, { recursive: true });
+    writeFileSync(join(dir, 'tours/river/tour.yml'), 'title: The river\nimage: { release: river.tif }\nscenes: [02, 01]\n');
+    const ok = await build(dir, { POSTERFORKER_RELEASE_DIR: releases });
+    expect(ok.code).toBe(0);
+    const ids = json(join(ok.out, 'tours/river/manifest.json')).items[0].annotations[0].items.map((a: { id: string }) => a.id.split('/').pop());
+    expect(ids).toEqual(['02', '01']);
+
+    writeFileSync(join(dir, 'tours/river/tour.yml'), 'title: The river\nimage: { release: river.tif }\nscenes: [02, 09, 01]\n');
+    const bad = await build(dir, { POSTERFORKER_RELEASE_DIR: releases });
+    expect(bad.stdout).toContain('::error file=tours/river/tour.yml,line=3::scenes.1 "09" has no file tours/river/scenes/09.md');
+  }, 30_000);
+
+  it('publishes the text files /edit starts from, and the commit they came from', async () => {
+    const r = await build(good, { POSTERFORKER_RELEASE_DIR: releases, GITHUB_SHA: 'abc123' });
+    const sources = json(join(r.out, 'edit/sources.json'));
+    expect(sources.commit).toBe('abc123');
+    expect(Object.keys(sources.files).sort()).toEqual([
+      'collection.yml',
+      'theme.yml',
+      'tours/harbour/scenes/01.md',
+      'tours/harbour/tour.yml',
+      'tours/river/scenes/01.md',
+      'tours/river/scenes/02.md',
+      'tours/river/tour.yml',
+    ]);
+    expect(sources.files['theme.yml']).toBe(readFileSync(join(good, 'theme.yml'), 'utf8'));
+  }, 30_000);
+
   it('writes manifests, tiles and the Collection for good content', async () => {
     const r = await build(good, { POSTERFORKER_RELEASE_DIR: releases });
     expect(r.code).toBe(0);

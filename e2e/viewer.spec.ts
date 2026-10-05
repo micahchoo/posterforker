@@ -83,3 +83,17 @@ test('a link naming a Tour the Collection lacks says so', async ({ page }) => {
   await expect(page.getByRole('status')).toHaveText('This link names a Tour, “lighthouse”, that this Collection does not have.');
   await expect(page.getByRole('heading', { level: 2, name: 'The river' })).toBeVisible();
 });
+
+test('both pages run under a Content Security Policy and break none of it', async ({ page }) => {
+  const violations: string[] = [];
+  page.on('console', (m) => {
+    if (/Content Security Policy/i.test(m.text())) violations.push(m.text());
+  });
+  for (const path of ['./#tour=river&scene=02', './edit/']) {
+    await page.goto(path);
+    const csp = await page.locator('meta[http-equiv="Content-Security-Policy"]').getAttribute('content');
+    expect(csp).toContain("script-src 'self'");
+    await page.waitForTimeout(1500);
+  }
+  expect(violations).toEqual([]);
+});

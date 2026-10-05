@@ -1,10 +1,10 @@
 // Writes the static site: one manifest per Tour, collection.json, and the prebuilt viewer
 // and /edit pages from the engine's dist/.
 import { Data, Effect } from 'effect';
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, relative, sep } from 'node:path';
 import { tourManifest } from '../core/manifest.ts';
-import { DEFAULT_LAYOUT, type SiteCollection } from '../core/schema.ts';
+import { CONTENT_FILE, DEFAULT_LAYOUT, type SiteCollection } from '../core/schema.ts';
 import type { Content } from './read.ts';
 import type { Tiled } from './tile.ts';
 
@@ -18,14 +18,33 @@ export type EmitInput = {
   /** The engine's built viewer (dist/viewer) and editor (dist/edit), when present. */
   engineDist: string;
   repo?: { repository: string; branch: string };
+  /** The Maker's repository, read again for the text files /edit starts from. */
+  contentDir: string;
+  /** The commit being built, so /edit can tell when a newer one exists. */
+  commit?: string;
 };
+
+/** Every content file under `root`, as text, keyed by its path in the repository. */
+function contentFiles(root: string): Record<string, string> {
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+      d.name.startsWith('.') ? [] : d.isDirectory() ? walk(join(dir, d.name)) : [join(dir, d.name)],
+    );
+  return Object.fromEntries(
+    walk(root)
+      .map((p) => [relative(root, p).split(sep).join('/'), p] as const)
+      .filter(([path]) => CONTENT_FILE.test(path))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([path, full]) => [path, readFileSync(full, 'utf8')]),
+  );
+}
 
 const writeJson = (path: string, value: unknown) => {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, JSON.stringify(value, null, 2) + '\n');
 };
 
-export const emitSite = ({ content, tiled, out, baseUrl, engineDist, repo }: EmitInput): Effect.Effect<SiteCollection, EmitFailed> =>
+export const emitSite = ({ content, tiled, out, baseUrl, engineDist, repo, contentDir, commit }: EmitInput): Effect.Effect<SiteCollection, EmitFailed> =>
   Effect.try({
     try: () => {
       const tours = content.tours.map((t) => {
@@ -68,6 +87,7 @@ export const emitSite = ({ content, tiled, out, baseUrl, engineDist, repo }: Emi
         const from = join(engineDist, part);
         if (existsSync(from)) cpSync(from, target, { recursive: true });
       }
+      writeJson(join(out, 'edit/sources.json'), { ...(commit ? { commit } : {}), files: contentFiles(contentDir) });
       // GitHub Pages must serve files that start with _ (Vite's assets can).
       writeFileSync(join(out, '.nojekyll'), '');
       return site;

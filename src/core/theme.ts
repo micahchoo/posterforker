@@ -26,6 +26,20 @@ export const PRESET_THEMES: Record<(typeof PRESETS)[number], Theme> = {
     panelOpacity: 0.92,
     motion: 'lively',
   },
+  paper: {
+    colors: { background: '#efe8da', panel: '#fbf7ef', text: '#2b2118', accent: '#9c3d1c' },
+    fonts: { heading: 'Literata', body: 'Literata' },
+    radius: 4,
+    panelOpacity: 0.97,
+    motion: 'gentle',
+  },
+  ink: {
+    colors: { background: '#0f1115', panel: '#1a1d24', text: '#e9edf3', accent: '#7fb2ff' },
+    fonts: { heading: 'Space Grotesk', body: 'Inter' },
+    radius: 10,
+    panelOpacity: 0.94,
+    motion: 'gentle',
+  },
 };
 
 export function resolveTheme(file: ThemeFile): Theme {

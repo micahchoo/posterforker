@@ -19,6 +19,9 @@ jobs:
       - run: npm install --global pnpm@11 && pnpm install --frozen-lockfile
       - run: pnpm typecheck && pnpm test
       - run: pnpm build:ui
+        env:
+          # The sign-in relay's address (docs/RELAY.md). Unset: /edit saves only without signing in.
+          VITE_POSTERFORKER_RELAY: ${{ vars.POSTERFORKER_RELAY }}
       - name: Commit dist/ and move the major tag
         env:
           TAG: ${{ github.ref_name }}

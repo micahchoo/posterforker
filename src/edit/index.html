@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Scripts only from this site; this page may hold a sign-in token (ADR-0005). Styles inline are Svelte's and OpenSeadragon's; fonts may come from Google (Theme). -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.github.com; object-src 'none'; frame-src 'self'; base-uri 'self'"
+    />
     <meta name="robots" content="noindex" />
     <title>Edit</title>
   </head>

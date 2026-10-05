@@ -20,6 +20,8 @@ export const TourFile = Schema.Struct({
   /** A file in the tour folder (up to 25 MiB through the browser) or a Release asset name. */
   image: Schema.Union([Schema.Struct({ file: Text }), Schema.Struct({ release: Text })]),
   alt: Schema.optionalKey(Text),
+  /** Scene ids in playing order. YAML reads an unquoted 02 as the number 2, so numbers match too. */
+  scenes: Schema.optionalKey(Schema.Array(Schema.Union([Text, Schema.Finite]))),
 });
 
 const ModuleList = Schema.Array(Schema.Literals(MODULES));

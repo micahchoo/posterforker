@@ -50,3 +50,17 @@ describe('readYamlFile', () => {
     });
   });
 });
+
+describe('Scene words are safe to show', () => {
+  it('shows raw HTML as text, so it cannot run', () => {
+    const r = readScene('s.md', scene('title: A\nregion: { x: 1, y: 2, w: 3, h: 4 }', 'Look <img src=x onerror=alert(1)> here.'));
+    expect(r.ok && r.value.html).toBe('<p>Look &lt;img src=x onerror=alert(1)&gt; here.</p>\n');
+  });
+
+  it('keeps web, mail and relative links and drops any other kind', () => {
+    const r = readScene('s.md', scene('title: A\nregion: { x: 1, y: 2, w: 3, h: 4 }', '[a](https://x.org) [b](mailto:a@b.c) [c](../other) [d](javascript:alert(1)) [e](data:text/html,x)'));
+    expect(r.ok && r.value.html).toBe(
+      '<p><a href="https://x.org">a</a> <a href="mailto:a@b.c">b</a> <a href="../other">c</a> d e</p>\n',
+    );
+  });
+});

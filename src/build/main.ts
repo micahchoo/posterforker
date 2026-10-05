@@ -60,7 +60,7 @@ const build = (contentDir: string, out: string, baseUrl: string, engineDist: str
     if (failures.length > 0) return yield* Effect.fail(new Failed(failures));
     const tiled = new Map<string, Tiled>(results.filter(Result.isSuccess).map((r) => r.success));
 
-    const site = yield* emitSite({ content, tiled, out, baseUrl, engineDist, ...(repo ? { repo } : {}) }).pipe(
+    const site = yield* emitSite({ content, tiled, out, baseUrl, engineDist, contentDir, ...(repo ? { repo } : {}), ...(process.env.GITHUB_SHA ? { commit: process.env.GITHUB_SHA } : {}) }).pipe(
       Effect.mapError((e) => new Failed([{ message: `the site could not be written: ${e.reason}` }])),
     );
     const scenes = content.tours.reduce((n, t) => n + t.scenes.length, 0);

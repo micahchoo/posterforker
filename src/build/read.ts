@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { themeContrastProblems } from '../core/contrast.ts';
 import { CollectionFile, ThemeFile, TourFile } from '../core/schema.ts';
 import { resolveTheme } from '../core/theme.ts';
-import { lineAt, readScene, readYamlFile, type Problem, type Read, type Scene } from '../core/source.ts';
+import { lineAt, playingOrder, readScene, readYamlFile, sourceAt, type Problem, type Read, type Scene } from '../core/source.ts';
 
 export class ContentProblems extends Data.TaggedError('ContentProblems')<{ problems: Problem[] }> {}
 
@@ -81,11 +81,19 @@ export const readContent = (root: string): Effect.Effect<Content, ContentProblem
       const meta = take(readYamlFile(`${dir}/tour.yml`, tourText, TourFile));
       const scenesDir = join(root, dir, 'scenes');
       const sceneFiles = existsSync(scenesDir) ? readdirSync(scenesDir).filter((f) => f.endsWith('.md')).sort() : [];
-      const scenes = sceneFiles.flatMap((f) => {
+      const byFile = sceneFiles.flatMap((f) => {
         const scene = take(readScene(`${dir}/scenes/${f}`, readFileSync(join(scenesDir, f), 'utf8')));
         return scene ? [{ ...scene, id: f.replace(/\.md$/, '') }] : [];
       });
       if (!meta) continue;
+
+      // tour.yml may list the playing order; Scenes it does not list follow, in file order.
+      const { order, missing } = playingOrder(byFile.map((s) => s.id), meta.scenes);
+      for (const i of missing) {
+        const typed = sourceAt(tourText, ['scenes', i]) ?? String(meta.scenes?.[i]);
+        problems.push({ file: `${dir}/tour.yml`, line: lineAt(tourText, ['scenes', i]), message: `scenes.${i} "${typed}" has no file ${dir}/scenes/${typed}.md` });
+      }
+      const scenes = order.map((id) => byFile.find((s) => s.id === id)!);
 
       const imageLine = lineAt(tourText, ['image']);
       let image: TourSource['image'];

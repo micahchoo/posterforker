@@ -16,8 +16,9 @@ pnpm test && pnpm typecheck && pnpm e2e
 1. **The viewer never imports `core/schema.ts` or `core/source.ts`.** They pull in
    Effect. The viewer imports `core/names.ts`, `theme.ts`, `geometry.ts`,
    `contrast.ts` only. Bundle: 108 KB gzipped, 87 KB of it OpenSeadragon.
-2. **`/edit` writes nothing.** It makes text and opens a GitHub page (ADR-0001). A
-   GitHub login from a Pages site is impossible anyway: device flow is refused by CORS.
+2. **`/edit` holds a GitHub token** (ADR-0005), so nothing on it may run script: Scene
+   Markdown has no raw HTML, both pages carry a CSP, the token lives in `sessionStorage`.
+   A Save is one commit through `edit/github.ts` and never forces over someone else's.
 3. **Every Maker-facing failure names a file and a line.** The build prints
    `::error file=…,line=…::`; the Maker sees nothing else.
 4. **Regions are Image pixels** (`PixelRect`) everywhere a Maker or IIIF sees them;

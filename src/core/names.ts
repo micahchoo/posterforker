@@ -8,8 +8,11 @@ export type SlotName = (typeof SLOTS)[number];
 export type ModuleName = (typeof MODULES)[number];
 export type Layout = Partial<Record<SlotName, ModuleName[]>>;
 
+/** The files of a Collection a Maker writes as text: what /edit reads and saves. */
+export const CONTENT_FILE = /^(collection\.yml|theme\.yml|tours\/[^/]+\/tour\.yml|tours\/[^/]+\/scenes\/[^/]+\.md)$/;
+
 export const MOTIONS = ['none', 'gentle', 'lively'] as const;
-export const PRESETS = ['neutral', 'character'] as const;
+export const PRESETS = ['neutral', 'character', 'paper', 'ink'] as const;
 
 /** Where the Modules sit when collection.yml says nothing. */
 export const DEFAULT_LAYOUT: Layout = {

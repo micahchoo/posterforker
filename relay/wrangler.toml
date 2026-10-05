@@ -1,0 +1,8 @@
+# The sign-in relay for /edit (ADR-0005). Deploy: see docs/RELAY.md.
+name = "posterforker-relay"
+main = "worker.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+APP_SLUG = "posterforker"
+# CLIENT_ID and CLIENT_SECRET are secrets: `wrangler secret put CLIENT_ID` (and CLIENT_SECRET).
